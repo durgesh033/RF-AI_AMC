@@ -1,0 +1,1137 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RF Lab | Modulation Analysis</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+    --bg: #f7f8f7;
+    --white: #ffffff;
+    --border: #e5e8e5;
+    --text: #292e2a;
+    --muted: #777f79;
+    --green: #527c65;
+    --light-green: #edf3ee;
+    --red: #b65c52;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 28px 24px;
+}
+
+/* Header */
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+}
+
+.brand {
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.brand small {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.status {
+    color: var(--green);
+    font-size: 12px;
+}
+
+/* Heading */
+
+.page-heading {
+    margin-bottom: 25px;
+}
+
+.page-heading h1 {
+    font-size: 27px;
+    font-weight: 600;
+    margin: 0 0 5px;
+}
+
+.page-heading p {
+    color: var(--muted);
+    margin: 0;
+}
+
+/* Metrics */
+
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.metric {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 17px;
+}
+
+.metric-label {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.metric-value {
+    font-size: 24px;
+    font-weight: 600;
+    margin-top: 7px;
+}
+
+.metric-note {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 3px;
+}
+
+/* Panels */
+
+.panel {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.panel-title {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.panel-description {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+.tag {
+    color: var(--muted);
+    background: #f6f7f6;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+}
+
+/* Controls */
+
+.controls {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 35px;
+    align-items: center;
+}
+
+.field-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 10px;
+}
+
+.modulations {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.modulations input {
+    display: none;
+}
+
+.modulations label {
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 13px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: .15s;
+}
+
+.modulations input:checked + label {
+    background: var(--light-green);
+    border-color: #9bb6a3;
+    color: #365d45;
+    font-weight: 600;
+}
+
+.modulations label:hover {
+    border-color: var(--green);
+}
+
+.snr-heading {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.snr-value {
+    color: var(--green);
+    font-weight: 600;
+}
+
+input[type="range"] {
+    width: 100%;
+    accent-color: var(--green);
+    cursor: pointer;
+}
+
+.range-labels {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+/* Chart layout */
+
+.visual-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 16px;
+}
+
+.chart-container {
+    position: relative;
+    height: 290px;
+    width: 100%;
+}
+
+.chart-legend {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+/* Classification */
+
+.confidence-list {
+    display: flex;
+    flex-direction: column;
+    gap: 17px;
+    margin-top: 20px;
+}
+
+.confidence-row {
+    display: grid;
+    grid-template-columns: 65px 1fr 48px;
+    align-items: center;
+    gap: 10px;
+}
+
+.confidence-name {
+    font-size: 12px;
+}
+
+.confidence-track {
+    height: 7px;
+    background: #edf0ed;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.confidence-fill {
+    height: 100%;
+    background: #a8b9ac;
+    border-radius: 5px;
+    transition: width .3s;
+}
+
+.confidence-fill.top {
+    background: var(--green);
+}
+
+.confidence-value {
+    text-align: right;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.prediction {
+    background: var(--light-green);
+    border: 1px solid #dce8de;
+    padding: 14px;
+    margin-top: 25px;
+    border-radius: 5px;
+}
+
+.prediction small {
+    color: var(--muted);
+}
+
+.prediction h3 {
+    color: var(--green);
+    margin: 4px 0 0;
+    font-size: 20px;
+}
+
+/* BER */
+
+.ber-value {
+    color: var(--green);
+    font-weight: 600;
+}
+
+/* Details */
+
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f1ef;
+    font-size: 12px;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: var(--muted);
+}
+
+.info-value {
+    text-align: right;
+}
+
+/* Error */
+
+.error {
+    display: none;
+    padding: 12px;
+    margin-bottom: 16px;
+    background: #fff3f1;
+    color: var(--red);
+    border: 1px solid #efd5d1;
+    border-radius: 5px;
+}
+
+/* Footer */
+
+footer {
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    margin-top: 25px;
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+/* Responsive */
+
+@media(max-width: 850px) {
+    .metrics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .visual-grid,
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .controls {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+@media(max-width: 500px) {
+    .container {
+        padding: 18px 12px;
+    }
+
+    .page-heading h1 {
+        font-size: 23px;
+    }
+
+    .panel {
+        padding: 15px;
+    }
+
+    .chart-container {
+        height: 250px;
+    }
+
+    .metric-value {
+        font-size: 21px;
+    }
+
+    footer {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<main class="container">
+
+    <header>
+        <div class="brand">
+            RF Lab
+            <small>Automatic Modulation Classification</small>
+        </div>
+
+        <div class="status">
+            ● <span id="pipelineStatus">Ready</span>
+        </div>
+    </header>
+
+    <section class="page-heading">
+        <h1>Modulation analysis</h1>
+        <p>Simulate digital modulation signals and study their behaviour under different noise conditions.</p>
+    </section>
+
+    <!-- Metrics -->
+
+    <section class="metrics">
+
+        <div class="metric">
+            <div class="metric-label">Modulation</div>
+            <div class="metric-value" id="metricMod">QPSK</div>
+            <div class="metric-note">Selected format</div>
+        </div>
+
+        <div class="metric">
+            <div class="metric-label">Signal-to-noise ratio</div>
+            <div class="metric-value"><span id="metricSnr">10</span> dB</div>
+            <div class="metric-note">Current channel SNR</div>
+        </div>
+
+        <div class="metric">
+            <div class="metric-label">Received samples</div>
+            <div class="metric-value" id="metricSamples">128</div>
+            <div class="metric-note">I/Q samples</div>
+        </div>
+
+        <div class="metric">
+            <div class="metric-label">Request status</div>
+            <div class="metric-value" id="metricStatus">Ready</div>
+            <div class="metric-note">Backend connection</div>
+        </div>
+
+    </section>
+
+    <!-- Signal settings -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Signal settings</div>
+                <div class="panel-description">Select modulation and adjust the noise level.</div>
+            </div>
+        </div>
+
+        <div class="controls">
+
+            <div>
+                <div class="field-label">Modulation scheme</div>
+
+                <div class="modulations">
+
+                    <div>
+                        <input type="radio" name="modType" id="bpsk" value="BPSK">
+                        <label for="bpsk">BPSK</label>
+                    </div>
+
+                    <div>
+                        <input type="radio" name="modType" id="qpsk" value="QPSK" checked>
+                        <label for="qpsk">QPSK</label>
+                    </div>
+
+                    <div>
+                        <input type="radio" name="modType" id="psk8" value="8PSK">
+                        <label for="psk8">8-PSK</label>
+                    </div>
+
+                    <div>
+                        <input type="radio" name="modType" id="qam16" value="16-QAM">
+                        <label for="qam16">16-QAM</label>
+                    </div>
+
+                    <div>
+                        <input type="radio" name="modType" id="qam64" value="64-QAM">
+                        <label for="qam64">64-QAM</label>
+                    </div>
+
+                </div>
+            </div>
+
+            <div>
+                <div class="snr-heading">
+                    <div class="field-label">SNR level</div>
+                    <div class="snr-value"><span id="snrVal">10</span> dB</div>
+                </div>
+
+                <input type="range" id="snrRange" min="-2" max="25" value="10" step="1">
+
+                <div class="range-labels">
+                    <span>-2 dB</span>
+                    <span>25 dB</span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <div class="error" id="errorBanner"></div>
+
+    <!-- Constellation and classification -->
+
+    <section class="visual-grid">
+
+        <article class="panel">
+
+            <div class="panel-header">
+                <div>
+                    <div class="panel-title">Constellation diagram</div>
+                    <div class="panel-description">Received in-phase and quadrature samples.</div>
+                </div>
+                <span class="tag">I / Q</span>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="constellationChart"></canvas>
+            </div>
+
+            <div class="chart-legend">
+                Each point represents one received symbol.
+            </div>
+
+        </article>
+
+        <article class="panel">
+
+            <div class="panel-header">
+                <div>
+                    <div class="panel-title">Classification results</div>
+                    <div class="panel-description">Confidence scores from the backend.</div>
+                </div>
+                <span class="tag">Results</span>
+            </div>
+
+            <div id="barsContainer" class="confidence-list">
+                Loading results...
+            </div>
+
+            <div class="prediction">
+                <small>Predicted modulation</small>
+                <h3 id="predictedMod">--</h3>
+            </div>
+
+        </article>
+
+    </section>
+
+    <!-- BER vs SNR -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">BER vs SNR</div>
+                <div class="panel-description">Theoretical bit error rate across different SNR values.</div>
+
+                <div class="panel-description">
+                    BER at selected SNR:
+                    <strong class="ber-value" id="currentBer">--</strong>
+                </div>
+            </div>
+
+            <span class="tag">BER analysis</span>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="berChart"></canvas>
+        </div>
+
+        <p class="chart-legend" id="berModelNote">
+            Theoretical uncoded AWGN reference, not measured BER.
+        </p>
+
+    </section>
+
+    <!-- FFT Spectrum -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Frequency spectrum</div>
+                <div class="panel-description">FFT of the received complex baseband signal.</div>
+            </div>
+
+            <span class="tag">512-point FFT</span>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="fftChart"></canvas>
+        </div>
+
+        <div class="chart-legend">
+            Relative spectral power, normalized to 0 dB.
+        </div>
+
+    </section>
+
+    <!-- Simulation details -->
+
+    <section class="details-grid">
+
+        <article class="panel">
+
+            <div class="panel-header">
+                <div>
+                    <div class="panel-title">Simulation details</div>
+                    <div class="panel-description">Current signal parameters.</div>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Channel model</span>
+                <span class="info-value">Rayleigh + AWGN</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Sample count</span>
+                <span class="info-value">128 symbols</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Signal representation</span>
+                <span class="info-value">Complex baseband I/Q</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">SNR range</span>
+                <span class="info-value">-2 to 25 dB</span>
+            </div>
+
+        </article>
+
+        <article class="panel">
+
+            <div class="panel-header">
+                <div>
+                    <div class="panel-title">Backend connection</div>
+                    <div class="panel-description">Latest API request information.</div>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Endpoint</span>
+                <span class="info-value">/classify_signal</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Last refresh</span>
+                <span class="info-value" id="lastRefresh">Waiting</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Request status</span>
+                <span class="info-value" id="requestStatus">Idle</span>
+            </div>
+
+        </article>
+
+    </section>
+
+    <footer>
+        <span>RF Lab · Automatic Modulation Classification</span>
+        <span>Signal processing and analysis</span>
+    </footer>
+
+</main>
+
+<script>
+
+// Chart variables
+
+let constellationChart;
+let berChart;
+let fftChart;
+let debounceTimer;
+
+const green = '#527c65';
+const gridColor = '#edf0ed';
+
+const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 200 },
+    plugins: {
+        legend: { display: false }
+    }
+};
+
+
+// 1. Constellation chart
+
+function initConstellationChart() {
+
+    constellationChart = new Chart(
+        document.getElementById('constellationChart'),
+        {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Received samples',
+                    data: [],
+                    backgroundColor: green,
+                    pointRadius: 3.5,
+                    pointHoverRadius: 5
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'In-phase (I)'
+                        },
+                        grid: { color: gridColor }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Quadrature (Q)'
+                        },
+                        grid: { color: gridColor }
+                    }
+                }
+            }
+        }
+    );
+}
+
+
+// 2. FFT chart
+
+function initFFTChart() {
+
+    fftChart = new Chart(
+        document.getElementById('fftChart'),
+        {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Power spectrum',
+                    data: [],
+                    borderColor: green,
+                    borderWidth: 1.7,
+                    pointRadius: 0,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        title: {
+                            display: true,
+                            text: 'Normalized frequency'
+                        },
+                        grid: { color: gridColor }
+                    },
+                    y: {
+                        min: -60,
+                        max: 0,
+                        title: {
+                            display: true,
+                            text: 'Power (dB)'
+                        },
+                        grid: { color: gridColor }
+                    }
+                }
+            }
+        }
+    );
+}
+
+
+// 3. BER chart
+
+function initBERChart() {
+
+    berChart = new Chart(
+        document.getElementById('berChart'),
+        {
+            type: 'line',
+            data: {
+                datasets: [
+                    {
+                        label: 'Theoretical BER',
+                        data: [],
+                        borderColor: '#9a7847',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.2
+                    },
+                    {
+                        type: 'scatter',
+                        label: 'Current operating point',
+                        data: [],
+                        backgroundColor: green,
+                        borderColor: green,
+                        pointRadius: 6
+                    }
+                ]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        title: {
+                            display: true,
+                            text: 'SNR / Eb/N0 (dB)'
+                        },
+                        grid: { color: gridColor }
+                    },
+                    y: {
+                        type: 'logarithmic',
+                        min: 1e-10,
+                        max: 1,
+                        title: {
+                            display: true,
+                            text: 'Bit error rate'
+                        },
+                        grid: { color: gridColor },
+                        ticks: {
+                            callback: value =>
+                                Number(value).toExponential(0)
+                        }
+                    }
+                }
+            }
+        }
+    );
+}
+
+
+// 4. Fetch BER data
+
+async function fetchBER(modType) {
+
+    const response = await fetch(
+        `/ber_vs_snr?type=${encodeURIComponent(modType)}`
+    );
+
+    if (!response.ok) {
+        throw new Error('Could not load BER data');
+    }
+
+    const data = await response.json();
+
+    berChart.data.datasets[0].label =
+        `${data.modulation} theoretical BER`;
+
+    berChart.data.datasets[0].data =
+        data.snr_db.map((snr, index) => ({
+            x: snr,
+            y: Math.max(data.ber[index], 1e-10)
+        }));
+
+    berChart.update('none');
+
+    document.getElementById('berModelNote').textContent =
+        `${data.model}. This is a theoretical reference, not measured BER.`;
+}
+
+
+// 5. Classification confidence
+
+function renderConfidence(confidence, predicted) {
+
+    const container =
+        document.getElementById('barsContainer');
+
+    container.innerHTML = '';
+
+    const sorted = Object.entries(confidence)
+        .sort((a, b) => b[1] - a[1]);
+
+    sorted.forEach(([modulation, value]) => {
+
+        const row = document.createElement('div');
+        row.className = 'confidence-row';
+
+        const name = document.createElement('div');
+        name.className = 'confidence-name';
+        name.textContent = modulation;
+
+        const track = document.createElement('div');
+        track.className = 'confidence-track';
+
+        const fill = document.createElement('div');
+        fill.className = 'confidence-fill';
+
+        if (modulation === predicted) {
+            fill.classList.add('top');
+        }
+
+        fill.style.width =
+            `${Math.max(0, Math.min(100, Number(value)))}%`;
+
+        track.appendChild(fill);
+
+        const percentage = document.createElement('div');
+        percentage.className = 'confidence-value';
+        percentage.textContent =
+            `${Number(value).toFixed(1)}%`;
+
+        row.append(name, track, percentage);
+        container.appendChild(row);
+    });
+}
+
+
+// 6. Main classification request
+
+async function fetchClassification() {
+
+    const modType = document.querySelector(
+        'input[name="modType"]:checked'
+    ).value;
+
+    const snr =
+        document.getElementById('snrRange').value;
+
+    const status =
+        document.getElementById('requestStatus');
+
+    const error =
+        document.getElementById('errorBanner');
+
+    document.getElementById('pipelineStatus').textContent =
+        'Running';
+
+    document.getElementById('metricStatus').textContent =
+        'Running';
+
+    status.textContent = 'Requesting';
+    error.style.display = 'none';
+
+    try {
+
+        const response = await fetch(
+            `/classify_signal?type=${encodeURIComponent(modType)}&snr=${encodeURIComponent(snr)}`
+        );
+
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Constellation
+
+        constellationChart.data.datasets[0].data =
+            data.i_coords.map((i, index) => ({
+                x: i,
+                y: data.q_coords[index]
+            }));
+
+        constellationChart.update('none');
+
+
+        // FFT spectrum
+
+        fftChart.data.datasets[0].data =
+            data.fft_frequency.map((frequency, index) => ({
+                x: frequency,
+                y: data.fft_power_db[index]
+            }));
+
+        fftChart.update('none');
+
+
+        // BER
+
+        document.getElementById('currentBer').textContent =
+            Number(data.ber_awgn_reference).toExponential(3);
+
+
+        // Classification
+
+        renderConfidence(
+            data.confidence,
+            data.modulation
+        );
+
+        document.getElementById('predictedMod').textContent =
+            data.modulation;
+
+
+        // BER curve
+
+        await fetchBER(modType);
+
+        berChart.data.datasets[1].data = [{
+            x: Number(snr),
+            y: Math.max(
+                Number(data.ber_awgn_reference),
+                1e-10
+            )
+        }];
+
+        berChart.update('none');
+
+
+        // Metrics
+
+        document.getElementById('metricMod').textContent =
+            modType;
+
+        document.getElementById('metricSnr').textContent =
+            snr;
+
+        document.getElementById('metricSamples').textContent =
+            data.i_coords.length;
+
+        document.getElementById('lastRefresh').textContent =
+            new Date().toLocaleTimeString();
+
+        status.textContent = 'Success';
+
+        document.getElementById('pipelineStatus').textContent =
+            'Ready';
+
+        document.getElementById('metricStatus').textContent =
+            'Ready';
+
+    } catch (err) {
+
+        status.textContent = 'Error';
+
+        document.getElementById('pipelineStatus').textContent =
+            'Error';
+
+        document.getElementById('metricStatus').textContent =
+            'Error';
+
+        error.textContent =
+            `Unable to load data: ${err.message}. Check your Flask server.`;
+
+        error.style.display = 'block';
+    }
+}
+
+
+// 7. Modulation selection
+
+document.querySelectorAll('input[name="modType"]')
+    .forEach(input => {
+
+        input.addEventListener(
+            'change',
+            fetchClassification
+        );
+
+    });
+
+
+// 8. SNR slider
+
+document.getElementById('snrRange')
+    .addEventListener('input', function () {
+
+        document.getElementById('snrVal').textContent =
+            this.value;
+
+        clearTimeout(debounceTimer);
+
+        debounceTimer = setTimeout(
+            fetchClassification,
+            250
+        );
+
+    });
+
+
+// 9. Initialize charts
+
+window.addEventListener('load', () => {
+
+    initConstellationChart();
+
+    initFFTChart();
+
+    initBERChart();
+
+    fetchClassification();
+
+});
+
+</script>
+
+</body>
+</html>
+    `;
+            }
+        }
+
+        window.onload = () => {
+            initChart();
+            fetchClassification();
+        };
+    </script>
+</body>
+
+</html>
